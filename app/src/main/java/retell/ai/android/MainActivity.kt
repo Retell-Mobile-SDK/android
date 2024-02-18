@@ -59,12 +59,19 @@ class MainActivity : ComponentActivity() {
         }
 
         webSocketClient =
-            AudioWsClient.connect("ws://echo.websocket.org") { receivedMessage = it }
+                //AudioWsClient.connect("wss://socketsbay.com/wss/v2/1/demo/") { receivedMessage = it }
+        //AudioWsClient.connect("ws://echo.websocket.org") { receivedMessage = it }
+        AudioWsClient.connect("wss://api.retellai.com/audio-websocket/3aa35343bc9bbab9bac333efa6e018f8") { receivedMessage = it }
     }
 
-    private fun startAudioRecording() {
-        val audioRecorder = AudioRecorder()
-        audioRecorder.startRecording()
+     fun startAudioRecording() {
+        Toast.makeText(this, "Start recording", Toast.LENGTH_SHORT).show()
+        if (webSocketClient!=null&&webSocketClient!!.isOpen) {
+            val audioRecorder = AudioRecorder()
+            audioRecorder.startRecording()
+        }else{
+            Toast.makeText(this, "websocket is not open", Toast.LENGTH_SHORT).show()
+        }
     }
 
     inner class AudioRecorder {
@@ -115,45 +122,49 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         webSocketClient = null
     }
-}
 
-@Composable
-fun RetellDemoApp() {
-    val context = LocalContext.current
-    var isRecording by remember { mutableStateOf(false) }
+    @Composable
+    fun RetellDemoApp() {
+        val context = LocalContext.current
+        var isRecording by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            if (context.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                isRecording = true
-            } else {
-                (context as MainActivity).audioPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(onClick = {
+                if (context.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                    startAudioRecording()
+                    isRecording = true
+                } else {
+                    (context as MainActivity).audioPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+                }
+            }) {
+                Text("Start")
             }
-        }) {
-            Text("Start")
-        }
 
-        Button(onClick = {
-            isRecording = false
-        }) {
-            Text("Stop")
+            Button(onClick = {
+                isRecording = false
+            }) {
+                Text("Stop")
+            }
         }
     }
+
+
+    @Preview(showBackground = true)
+    @Composable
+    fun GreetingPreview() {
+        RetellandroiddemoTheme {
+            RetellDemoApp()
+        }
+    }
+
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    RetellandroiddemoTheme {
-        RetellDemoApp()
-    }
-}
 
